@@ -32,5 +32,5 @@ Desktop.ini
 example_ofxJava/bin/.tmp
 bin/.tmp
 obj/
-**/build-ofxJava_example-Desktop-Debug
-**/build-ofxJava_example-Desktop-Release
+**/build-example_ofxJava-Desktop-Debug
+**/build-example_ofxJava-Desktop-Release
