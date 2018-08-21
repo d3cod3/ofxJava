@@ -22,10 +22,9 @@ Project{
         // the addons from the qbs file change the following lines to
         // the list of used addons in array format. eg:
         //
-        // of.addons: [
-        //     'ofxGui',
-        //     'ofxOpenCv',
-        // ]
+        of.addons: [
+            'ofxJava',
+        ]
 
         // additional flags for the project. the of module sets some
         // flags by default to add the core libraries, search paths...
@@ -33,13 +32,13 @@ Project{
         of.pkgConfigs: []       // list of additional system pkgs to include
         of.includePaths: []     // include search paths
         of.cFlags: []           // flags passed to the c compiler
-        of.cxxFlags: []         // flags passed to the c++ compiler
+        of.cxxFlags: ['-I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/','-I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin/']         // flags passed to the c++ compiler
         of.linkerFlags: []      // flags passed to the linker
         of.defines: []          // defines are passed as -D to the compiler
         // and can be checked with #ifdef or #if in the code
-        of.frameworks: []       // osx only, additional frameworks to link with the project
+        of.frameworks: ['JavaVM']       // osx only, additional frameworks to link with the project
         of.staticLibraries: []  // static libraries
-        of.dynamicLibraries: [] // dynamic libraries
+        of.dynamicLibraries: ['/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre/lib/server/libjvm.dylib'] // dynamic libraries
 
         // other flags can be set through the cpp module: http://doc.qt.io/qbs/cpp-module.html
         // eg: this will enable ccache when compiling

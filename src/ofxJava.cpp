@@ -34,10 +34,88 @@
 
 //--------------------------------------------------------------
 ofxJava::ofxJava(){
-
+    mainFilePath        = ofToDataPath("");
+    currentFilePath     = "";
 }
 
 //--------------------------------------------------------------
 ofxJava::~ofxJava(){
+
+}
+
+//--------------------------------------------------------------
+void ofxJava::loadJVM(){
+    JavaVMInitArgs vm_args;
+    JavaVMOption* options = new JavaVMOption[1];
+    char start[100] = "-Djava.class.path=";
+    options[0].optionString = strcat(start,mainFilePath.c_str());
+    vm_args.version = JNI_VERSION_1_6;
+    vm_args.nOptions = 1;
+    vm_args.options = options;
+    vm_args.ignoreUnrecognized = false;
+
+    jint rc = JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
+    if (rc != JNI_OK) {
+        ofLog(OF_LOG_ERROR,"JVM INIT ERROR!");
+    }else{
+        ofLog(OF_LOG_NOTICE,"JVM load succeeded: Version %i",env->GetVersion());
+    }
+}
+
+//--------------------------------------------------------------
+void ofxJava::closeJVM(){
+    jvm->DestroyJavaVM();
+}
+
+//--------------------------------------------------------------
+void ofxJava::loadScript(string filepath){
+    currentFilePath = filepath;
+    compileScript(currentFilePath);
+
+    setup();
+}
+
+//--------------------------------------------------------------
+void ofxJava::compileScript(string filepath){
+    ofFile file (filepath);
+    if (file.exists()){
+        string fileExtension = ofToUpper(file.getExtension());
+        if(fileExtension == "JAVA") {
+            string cmd = "javac "+currentFilePath;
+            system(cmd.c_str());
+        }
+    }
+}
+
+//--------------------------------------------------------------
+void ofxJava::setup(){
+
+    jclass cls2 = env->FindClass("MosaicJavaClass");  // try to find the class
+
+    if(cls2 == nullptr) {
+        ofLog(OF_LOG_ERROR,"ERROR: class not found !");
+    }else{
+        //ofLog(OF_LOG_NOTICE,"Class MosaicJavaClass found");
+
+        jmethodID constructor = env->GetMethodID(cls2, "<init>", "()V"); //this is for defaul c-tor
+        jobject object = env->NewObject(cls2, constructor);
+
+        jmethodID sid = env->GetMethodID(cls2, "setup", "()V"); // find method
+        if(sid == nullptr){
+            ofLog(OF_LOG_ERROR,"ERROR: method void setup() not found !");
+        }else{
+            //ofLog(OF_LOG_NOTICE,"setup() inited!");
+            env->CallVoidMethod(object, sid); // call method
+        }
+    }
+}
+
+//--------------------------------------------------------------
+void ofxJava::update(){
+
+}
+
+//--------------------------------------------------------------
+void ofxJava::draw(){
 
 }

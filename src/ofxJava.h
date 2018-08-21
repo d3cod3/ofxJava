@@ -34,6 +34,8 @@
 
 #include "ofMain.h"
 
+#include <jni.h>
+
 
 class ofxJava {
     
@@ -42,7 +44,23 @@ public:
     ofxJava();
     ~ofxJava();
 
-    
+    void    loadJVM();
+    void    closeJVM();
+
+    void    loadScript(string filepath);
+    void    compileScript(string filepath);
+
+    void    setup();
+    void    update();
+    void    draw();
+
+
+
+    JavaVM *jvm;                      // Pointer to the JVM (Java Virtual Machine)
+    JNIEnv *env;                      // Pointer to native interface
+
+    string  mainFilePath;
+    string  currentFilePath;
     
 private:
     
