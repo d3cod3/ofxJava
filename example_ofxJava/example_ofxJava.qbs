@@ -32,13 +32,13 @@ Project{
         of.pkgConfigs: []       // list of additional system pkgs to include
         of.includePaths: []     // include search paths
         of.cFlags: []           // flags passed to the c compiler
-        of.cxxFlags: ['-I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/','-I/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin/']         // flags passed to the c++ compiler
+        of.cxxFlags: []         // flags passed to the c++ compiler
         of.linkerFlags: []      // flags passed to the linker
         of.defines: []          // defines are passed as -D to the compiler
         // and can be checked with #ifdef or #if in the code
-        of.frameworks: ['JavaVM']       // osx only, additional frameworks to link with the project
+        of.frameworks: []       // osx only, additional frameworks to link with the project
         of.staticLibraries: []  // static libraries
-        of.dynamicLibraries: ['/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre/lib/server/libjvm.dylib'] // dynamic libraries
+        of.dynamicLibraries: [] // dynamic libraries
 
         // other flags can be set through the cpp module: http://doc.qt.io/qbs/cpp-module.html
         // eg: this will enable ccache when compiling

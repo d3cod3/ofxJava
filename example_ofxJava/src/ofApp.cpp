@@ -2,13 +2,15 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    jvm.loadJVM();
-
     jvm.loadScript(ofToDataPath("MosaicJavaClass.java"));
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    if(jvm.sys_status == 0 && !jvm.compiled){
+        jvm.compiled = true;
+        jvm.setup();
+    }
 
 }
 

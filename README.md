@@ -1,2 +1,2 @@
 # ofxJava
-a java scripting interface &amp; bindings for openFrameworks
+a java scripting interface for openFrameworks
