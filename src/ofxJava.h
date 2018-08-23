@@ -43,16 +43,29 @@ public:
 
 
     void    loadScript(string filepath);
-    void    compileScript(string filepath);
+    void    reload();
+    void    closeJVM();
 
     void    setup();
+    void    update();
+    void    draw();
+
+    string  execCmd(const char* cmd);
 
     bool                    compiled;
+    bool                    loadedTxtInfo;
     int                     sys_status;
+    ofFile                  currentFile;
     string                  mainFilePath;
     string                  currentFilePath;
+
+    ofFile                  bufferFile;
+    ofImage                 renderReference;
+    ofTexture               renderTexture;
     
 private:
     
+    FILE    *cmdf;
+    pid_t   pid;
     
 };

@@ -2,26 +2,43 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    jvm.loadScript(ofToDataPath("MosaicJavaClass.java"));
+    ofSetFrameRate(30);
+    ofSetVerticalSync(true);
+    ofSetWindowTitle("OF Render");
+
+    jvm = new ofxJava();
+    jvm->loadScript(ofToDataPath("MosaicProcessingClass.java"));
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    if(jvm.sys_status == 0 && !jvm.compiled){
-        jvm.compiled = true;
-        jvm.setup();
+    if(jvm->sys_status == 0 && !jvm->compiled){
+        jvm->setup();
+    }
+
+    if(jvm->compiled){
+        jvm->update();
     }
 
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    if(jvm->compiled){
+        jvm->draw();
+    }
+}
 
+//--------------------------------------------------------------
+void ofApp::exit(){
+    jvm->closeJVM();
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+    if(key == 'r'){
+        jvm->reload();
+    }
 }
 
 //--------------------------------------------------------------
