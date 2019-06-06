@@ -60,8 +60,11 @@ public:
     string                  currentFilePath;
 
     ofFile                  bufferFile;
-    ofImage                 renderReference;
-    ofTexture               renderTexture;
+    ofImage                 *renderReference;
+    ofTexture               *renderTexture;
+    ofBuffer                renderBuffer;
+
+    size_t                  resetTime;
     
 private:
     

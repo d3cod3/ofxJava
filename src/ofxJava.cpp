@@ -41,6 +41,8 @@ ofxJava::ofxJava(){
 
     compiled            = true;
     sys_status          = -1;
+
+    resetTime           = ofGetElapsedTimeMillis();
 }
 
 //--------------------------------------------------------------
@@ -58,16 +60,22 @@ void ofxJava::loadScript(string filepath){
         if(fileExtension == "JAVA") {
             string libpath = "'.:"+file.getEnclosingDirectory()+"core.jar' ";
             string cmd = "javac -cp "+libpath+currentFilePath;
-            compiled = false;
+            compiled        = false;
+            loadedTxtInfo   = false;
             sys_status = system(cmd.c_str());
+            resetTime = ofGetElapsedTimeMillis();
         }
     }
+
 }
 
 //--------------------------------------------------------------
 void ofxJava::closeJVM(){
     string killCmd = "kill -9 "+ofToString(pid);
     system(killCmd.c_str());
+
+    bufferFile.removeFile(currentFile.getAbsolutePath().substr(0,currentFile.getAbsolutePath().size()-5)+".dat");
+    bufferFile.removeFile(currentFile.getAbsolutePath().substr(0,currentFile.getAbsolutePath().size()-5)+".png");
 }
 
 //--------------------------------------------------------------
@@ -97,19 +105,19 @@ void ofxJava::setup(){
 //--------------------------------------------------------------
 void ofxJava::update(){
     string absolutePath = currentFile.getAbsolutePath();
-    string className = currentFile.getFileName();
-    string binaryData = className.substr(0,className.size()-5)+".dat";
-    bufferFile.open(binaryData);
+    bufferFile.open(absolutePath.substr(0,absolutePath.size()-5)+".dat");
 
     if(!loadedTxtInfo){
-        loadedTxtInfo = true;
-        renderReference.load(absolutePath.substr(0,absolutePath.size()-5)+".png");
+        renderReference = new ofImage();
+        loadedTxtInfo = renderReference->load(absolutePath.substr(0,absolutePath.size()-5)+".png");
+        renderTexture   = new ofTexture();
+        renderTexture->allocate(static_cast<int>(renderReference->getWidth()),static_cast<int>(renderReference->getHeight()),GL_RGB);
     }
 
-    if(bufferFile.exists() && bufferFile.canRead() && loadedTxtInfo){
-        ofBuffer buffer = bufferFile.readToBuffer();
-        if(buffer.getData() != nullptr){
-            renderTexture.loadData((uint8_t*)buffer.getData(),static_cast<int>(renderReference.getWidth()),static_cast<int>(renderReference.getHeight()),GL_RGB);
+    if(bufferFile.exists() && bufferFile.canRead() && loadedTxtInfo && renderTexture->isAllocated()){
+        ofBuffer _renderBuffer = bufferFile.readToBuffer();
+        if(_renderBuffer.getData() != nullptr){
+            renderTexture->loadData((uint8_t*)_renderBuffer.getData(),static_cast<int>(renderReference->getWidth()),static_cast<int>(renderReference->getHeight()),GL_RGB);
         }
     }
 }
@@ -117,9 +125,9 @@ void ofxJava::update(){
 //--------------------------------------------------------------
 void ofxJava::draw(){
     ofSetColor(255);
-    if(renderTexture.isAllocated()){
-        renderTexture.draw(0,0);
-    }
+    /*if(renderTexture->isAllocated()){
+        renderTexture->draw(0,0);
+    }*/
 }
 
 //--------------------------------------------------------------
