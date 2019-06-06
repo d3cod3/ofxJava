@@ -2,7 +2,7 @@
  *      ----------------------------------------------------------
  *      Mosaic | OF Visual Patching Developer Platform
  *
- *      Copyright (c) 2018 Emanuele Mazza aka n3m3da
+ *      Copyright (c) 2019 Emanuele Mazza aka n3m3da
  *
  *      Mosaic is distributed under the MIT License. This gives everyone the
  *      freedoms to use Mosaic in any context: commercial or non-commercial,
@@ -62,18 +62,18 @@ public class MosaicProcessingClass extends PApplet{
         fill(0,0,0,10);
         rect(0,0,width,height);
 
-        fill(55,255,5,30);
+        fill(255,255,5,30);
 
-        beginShape(); 
-  
+        beginShape();
+
         float xoff = 0;
-  
+
         // Iterate over horizontal pixels
         for (float x = 0; x <= width; x += 10) {
-            // Calculate a y value according to noise, map to 
+            // Calculate a y value according to noise, map to
             float y = map(noise(xoff, yoff), 0, 1, 200,300);
             // Set the vertex
-            vertex(x, y); 
+            vertex(x, y);
             // Increment x dimension for noise
             xoff += 0.05;
         }
