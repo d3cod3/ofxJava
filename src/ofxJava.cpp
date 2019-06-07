@@ -58,10 +58,23 @@ void ofxJava::loadScript(string filepath){
     if (file.exists()){
         string fileExtension = ofToUpper(file.getExtension());
         if(fileExtension == "JAVA") {
-            string libpath = "'.:"+file.getEnclosingDirectory()+"core.jar' ";
+
+            string javalibsfolder = ofToDataPath("scripts/javalibs/",true);
+
+#ifdef TARGET_OSX
+            string libpath = "'.:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-macosx-universal.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-macosx-universal.jar' ";
+#elif defined(TARGET_WIN32)
+            string libpath = "'.:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-windows-amd64.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-windows-amd64.jar' ";
+#elif defined(TARGET_LINUX)
+            string libpath = "'.:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-linux-amd64.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-linux-amd64.jar' ";
+#endif
+
             string cmd = "javac -cp "+libpath+currentFilePath;
             compiled        = false;
             loadedTxtInfo   = false;
+
+            // TODO --> add compile log
+
             sys_status = system(cmd.c_str());
             resetTime = ofGetElapsedTimeMillis();
         }
@@ -71,7 +84,11 @@ void ofxJava::loadScript(string filepath){
 
 //--------------------------------------------------------------
 void ofxJava::closeJVM(){
+#ifdef TARGET_WIN32
     string killCmd = "kill -9 "+ofToString(pid);
+#else
+    string killCmd = "kill -9 "+ofToString(pid);
+#endif
     system(killCmd.c_str());
 
     bufferFile.removeFile(currentFile.getAbsolutePath().substr(0,currentFile.getAbsolutePath().size()-5)+".dat");
@@ -90,10 +107,26 @@ void ofxJava::setup(){
     currentFile.open(currentFilePath);
 
     string className = currentFile.getFileName();
-    string cmd = "cd "+currentFile.getEnclosingDirectory()+" && java -cp core.jar:. "+className.substr(0,className.size()-5)+" &";
+    string javalibsfolder = ofToDataPath("scripts/javalibs/",true);
+#ifdef TARGET_OSX
+    string libpath = ".:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-macosx-universal.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-macosx-universal.jar ";
+#elif defined(TARGET_WIN32)
+    string libpath = ".:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-windows-amd64.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-windows-amd64.jar ";
+#elif defined(TARGET_LINUX)
+    string libpath = ".:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-linux-amd64.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-linux-amd64.jar ";
+#endif
+    string cmd = "cd "+currentFile.getEnclosingDirectory()+" && java -cp "+libpath+className.substr(0,className.size()-5)+" &";
+
+    // TODO --> add launch log
+
     sys_status = system(cmd.c_str());
 
+#ifdef TARGET_WIN32
     string getPidCmd = "ps aux | grep '"+className.substr(0,className.size()-5)+"' | head -n 2 | tail -1 | awk '{print $2}'";
+#else
+    string getPidCmd = "ps aux | grep '"+className.substr(0,className.size()-5)+"' | head -n 2 | tail -1 | awk '{print $2}'";
+#endif
+
     string lastPID = execCmd(getPidCmd.c_str());
 
     pid = ofToInt(lastPID);
@@ -103,15 +136,20 @@ void ofxJava::setup(){
 }
 
 //--------------------------------------------------------------
-void ofxJava::update(){
+void ofxJava::update(ofBuffer &dataIn, ofBuffer &dataOut){
     string absolutePath = currentFile.getAbsolutePath();
     bufferFile.open(absolutePath.substr(0,absolutePath.size()-5)+".dat");
 
     if(!loadedTxtInfo){
-        renderReference = new ofImage();
-        loadedTxtInfo = renderReference->load(absolutePath.substr(0,absolutePath.size()-5)+".png");
-        renderTexture   = new ofTexture();
-        renderTexture->allocate(static_cast<int>(renderReference->getWidth()),static_cast<int>(renderReference->getHeight()),GL_RGB);
+        ofFile tf(std::filesystem::path(absolutePath.substr(0,absolutePath.size()-5)+".png"));
+        if(tf.exists()){
+            renderReference = new ofImage();
+            loadedTxtInfo = renderReference->load(absolutePath.substr(0,absolutePath.size()-5)+".png");
+        }
+        if(loadedTxtInfo){
+            renderTexture   = new ofTexture();
+            renderTexture->allocate(static_cast<int>(renderReference->getWidth()),static_cast<int>(renderReference->getHeight()),GL_RGB);
+        }
     }
 
     if(bufferFile.exists() && bufferFile.canRead() && loadedTxtInfo && renderTexture->isAllocated()){
@@ -119,15 +157,17 @@ void ofxJava::update(){
         if(_renderBuffer.getData() != nullptr){
             renderTexture->loadData((uint8_t*)_renderBuffer.getData(),static_cast<int>(renderReference->getWidth()),static_cast<int>(renderReference->getHeight()),GL_RGB);
         }
+        ofBufferToFile(std::filesystem::path(absolutePath.substr(0,absolutePath.size()-5)+"_in.txt"),dataIn,false);
+        dataOut = ofBufferFromFile(std::filesystem::path(absolutePath.substr(0,absolutePath.size()-5)+"_out.txt"),false);
     }
 }
 
 //--------------------------------------------------------------
 void ofxJava::draw(){
     ofSetColor(255);
-    /*if(renderTexture->isAllocated()){
+    if(renderTexture->isAllocated()){
         renderTexture->draw(0,0);
-    }*/
+    }
 }
 
 //--------------------------------------------------------------

@@ -47,7 +47,7 @@ public:
     void    closeJVM();
 
     void    setup();
-    void    update();
+    void    update(ofBuffer &dataIn, ofBuffer &dataOut);
     void    draw();
 
     string  execCmd(const char* cmd);
