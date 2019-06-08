@@ -61,8 +61,18 @@ void ofxJava::loadScript(string filepath){
 
             string javalibsfolder = ofToDataPath("scripts/javalibs/",true);
 
+            ofDirectory customJavalibdir;
+            customJavalibdir.open(std::filesystem::path(file.getEnclosingDirectory()+"library/"));
+
+            string customLibsList = "";
+            if(customJavalibdir.exists()){
+                for(int i=0;i<customJavalibdir.getFiles().size();i++){
+                    customLibsList.append(":"+customJavalibdir.getFile(i).getAbsolutePath());
+                }
+            }
+
 #ifdef TARGET_OSX
-            string libpath = "'.:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-macosx-universal.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-macosx-universal.jar' ";
+            string libpath = "'.:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-macosx-universal.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-macosx-universal.jar"+customLibsList+"' ";
 #elif defined(TARGET_WIN32)
             string libpath = "'.:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-windows-amd64.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-windows-amd64.jar' ";
 #elif defined(TARGET_LINUX)
@@ -73,7 +83,6 @@ void ofxJava::loadScript(string filepath){
             compiled        = false;
             loadedTxtInfo   = false;
 
-            // TODO --> add compile log
 
             sys_status = system(cmd.c_str());
             resetTime = ofGetElapsedTimeMillis();
@@ -85,7 +94,7 @@ void ofxJava::loadScript(string filepath){
 //--------------------------------------------------------------
 void ofxJava::closeJVM(){
 #ifdef TARGET_WIN32
-    string killCmd = "kill -9 "+ofToString(pid);
+    string killCmd = "Taskkill /PID "+ofToString(pid)+" /F";
 #else
     string killCmd = "kill -9 "+ofToString(pid);
 #endif
@@ -108,8 +117,19 @@ void ofxJava::setup(){
 
     string className = currentFile.getFileName();
     string javalibsfolder = ofToDataPath("scripts/javalibs/",true);
+
+    ofDirectory customJavalibdir;
+    customJavalibdir.open(std::filesystem::path(currentFile.getEnclosingDirectory()+"library/"));
+
+    string customLibsList = "";
+    if(customJavalibdir.exists()){
+        for(int i=0;i<customJavalibdir.getFiles().size();i++){
+            customLibsList.append(":"+customJavalibdir.getFile(i).getAbsolutePath());
+        }
+    }
+
 #ifdef TARGET_OSX
-    string libpath = ".:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-macosx-universal.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-macosx-universal.jar ";
+    string libpath = ".:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-macosx-universal.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-macosx-universal.jar"+customLibsList+" ";
 #elif defined(TARGET_WIN32)
     string libpath = ".:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-windows-amd64.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-windows-amd64.jar ";
 #elif defined(TARGET_LINUX)
@@ -117,12 +137,10 @@ void ofxJava::setup(){
 #endif
     string cmd = "cd "+currentFile.getEnclosingDirectory()+" && java -cp "+libpath+className.substr(0,className.size()-5)+" &";
 
-    // TODO --> add launch log
-
     sys_status = system(cmd.c_str());
 
 #ifdef TARGET_WIN32
-    string getPidCmd = "ps aux | grep '"+className.substr(0,className.size()-5)+"' | head -n 2 | tail -1 | awk '{print $2}'";
+    string getPidCmd = "ps aux | grep '"+className.substr(0,className.size()-5)+"' | head -n 2 | tail -1 | awk '{print $2}'"; // tasklist ......
 #else
     string getPidCmd = "ps aux | grep '"+className.substr(0,className.size()-5)+"' | head -n 2 | tail -1 | awk '{print $2}'";
 #endif
@@ -185,9 +203,13 @@ string  ofxJava::execCmd(const char* cmd){
     if (!pipe) throw std::runtime_error("popen() failed!");
     try {
         while (!feof(pipe)) {
-            if (fgets(buffer, 128, pipe) != NULL)
-                result += buffer;
+            if (fgets(buffer, sizeof(buffer), pipe) != nullptr){
+                char *s = buffer;
+                std::string tempstr(s);
+                result.append(tempstr);
+            }
         }
+
     } catch (...) {
 #ifdef TARGET_LINUX
         pclose(pipe);
