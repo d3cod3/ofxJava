@@ -36,6 +36,7 @@
 ofxJava::ofxJava(){
     mainFilePath        = ofToDataPath("");
     currentFilePath     = "";
+    actualClassName     = "";
 
     loadedTxtInfo       = false;
 
@@ -93,11 +94,15 @@ void ofxJava::loadScript(string filepath){
 
 //--------------------------------------------------------------
 void ofxJava::closeJVM(){
-#ifdef TARGET_WIN32
-    string killCmd = "Taskkill /PID "+ofToString(pid)+" /F";
-#else
+
+#ifdef TARGET_OSX
     string killCmd = "kill -9 "+ofToString(pid);
+#elif defined(TARGET_WIN32)
+    string killCmd = "Taskkill /PID "+ofToString(pid)+" /F";
+#elif defined(TARGET_LINUX)
+    string killCmd = "ps -ef | grep '"+actualClassName+"' | grep -v grep | grep -v atom | awk '{print $2}' | xargs -r kill -9";
 #endif
+
     system(killCmd.c_str());
 
     bufferFile.removeFile(currentFile.getAbsolutePath().substr(0,currentFile.getAbsolutePath().size()-5)+".dat");
@@ -128,6 +133,8 @@ void ofxJava::setup(){
         }
     }
 
+    actualClassName = className.substr(0,className.size()-5);
+
 #ifdef TARGET_OSX
     string libpath = ".:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-macosx-universal.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-macosx-universal.jar"+customLibsList+" ";
 #elif defined(TARGET_WIN32)
@@ -135,14 +142,14 @@ void ofxJava::setup(){
 #elif defined(TARGET_LINUX)
     string libpath = ".:"+javalibsfolder+"core.jar:"+javalibsfolder+"jogl-all.jar:"+javalibsfolder+"jogl-all-natives-linux-amd64.jar:"+javalibsfolder+"gluegen-rt.jar:"+javalibsfolder+"gluegen-rt-natives-linux-amd64.jar ";
 #endif
-    string cmd = "cd "+currentFile.getEnclosingDirectory()+" && java -cp "+libpath+className.substr(0,className.size()-5)+" &";
+    string cmd = "cd "+currentFile.getEnclosingDirectory()+" && java -cp "+libpath+actualClassName+" &";
 
     sys_status = system(cmd.c_str());
 
 #ifdef TARGET_WIN32
-    string getPidCmd = "ps aux | grep '"+className.substr(0,className.size()-5)+"' | head -n 2 | tail -1 | awk '{print $2}'"; // tasklist ......
+    string getPidCmd = "ps aux | grep '"+actualClassName+"' | head -n 2 | tail -1 | awk '{print $2}'"; // tasklist ......
 #else
-    string getPidCmd = "ps aux | grep '"+className.substr(0,className.size()-5)+"' | head -n 2 | tail -1 | awk '{print $2}'";
+    string getPidCmd = "ps aux | grep '"+actualClassName+"' | head -n 2 | tail -1 | awk '{print $2}'";
 #endif
 
     string lastPID = execCmd(getPidCmd.c_str());

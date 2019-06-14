@@ -58,6 +58,7 @@ public:
     ofFile                  currentFile;
     string                  mainFilePath;
     string                  currentFilePath;
+    string                  actualClassName;
 
     ofFile                  bufferFile;
     ofImage                 *renderReference;
